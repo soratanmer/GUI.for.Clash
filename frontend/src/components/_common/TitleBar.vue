@@ -13,7 +13,7 @@ import {
 } from '@/bridge'
 import { OS } from '@/enums/app'
 import { useAppSettingsStore, useKernelApiStore, useEnvStore, useAppStore } from '@/stores'
-import { APP_TITLE, APP_VERSION, debounce, exitApp, reloadApp } from '@/utils'
+import { APP_TITLE, debounce, exitApp, reloadApp } from '@/utils'
 
 const isPinned = ref(false)
 const isMaximised = ref(false)
@@ -82,7 +82,6 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
       @dblclick="WindowToggleMaximise"
     >
       <span class="app-titlebar__name">{{ APP_TITLE }}</span>
-      <span class="app-titlebar__version">{{ APP_VERSION }}</span>
       <div
         v-if="appStore.customActions.title_bar.length"
         class="app-titlebar__custom-actions inline-flex items-center"
