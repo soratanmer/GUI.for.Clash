@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, useTemplateRef } from 'vue'
+import { ref, computed, watch, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import logo from '@/assets/logo'
 import { ControllerCloseMode } from '@/enums/app'
-import { useAppSettingsStore, useProfilesStore, useKernelApiStore } from '@/stores'
+import { useAppSettingsStore, useSubscribesStore, useKernelApiStore } from '@/stores'
 import { APP_TITLE, message, debounce, modal } from '@/utils'
 
 import GroupsController from './components/GroupsController.vue'
@@ -18,8 +18,12 @@ const controllerRef = useTemplateRef('controllerRef')
 const { t } = useI18n()
 
 const appSettingsStore = useAppSettingsStore()
-const profilesStore = useProfilesStore()
+const subscribesStore = useSubscribesStore()
 const kernelApiStore = useKernelApiStore()
+
+const fullConfigSubs = computed(() =>
+  subscribesStore.subscribes.filter((s) => s.configMode === 'full' && !s.disabled),
+)
 
 const handleStartKernel = async () => {
   try {
@@ -87,7 +91,7 @@ watch(showController, (v) => {
     >
       <img :src="logo" draggable="false" class="w-128 mb-16" />
 
-      <template v-if="profilesStore.profiles.length === 0">
+      <template v-if="fullConfigSubs.length === 0">
         <p>{{ t('home.noProfile', [APP_TITLE]) }}</p>
         <Button type="primary" @click="handleShowQuickStart">{{ t('home.quickStart') }}</Button>
       </template>
@@ -95,18 +99,18 @@ watch(showController, (v) => {
       <template v-else>
         <div class="flex gap-8 mb-32">
           <Card
-            v-for="p in profilesStore.profiles.slice(0, profilesStore.profiles.length > 4 ? 3 : 4)"
-            :key="p.id"
-            :selected="appSettingsStore.app.kernel.profile === p.id"
-            @click="appSettingsStore.app.kernel.profile = p.id"
+            v-for="s in fullConfigSubs.slice(0, fullConfigSubs.length > 4 ? 3 : 4)"
+            :key="s.id"
+            :selected="appSettingsStore.app.kernel.activeSubscription === s.id"
+            @click="appSettingsStore.app.kernel.activeSubscription = s.id"
           >
             <div
               class="w-128 h-full flex items-center justify-center py-24 text-center cursor-pointer font-bold text-12"
             >
-              {{ p.name }}
+              {{ s.name }}
             </div>
           </Card>
-          <Dropdown v-if="profilesStore.profiles.length > 4" placement="top">
+          <Dropdown v-if="fullConfigSubs.length > 4" placement="top">
             <Card class="h-full">
               <div
                 class="w-128 h-full flex items-center justify-center py-24 text-center cursor-pointer font-bold text-12"
@@ -117,13 +121,13 @@ watch(showController, (v) => {
             <template #overlay>
               <div class="flex flex-col py-8">
                 <Button
-                  v-for="p in profilesStore.profiles.slice(3)"
-                  :key="p.id"
-                  @click="appSettingsStore.app.kernel.profile = p.id"
+                  v-for="s in fullConfigSubs.slice(3)"
+                  :key="s.id"
+                  @click="appSettingsStore.app.kernel.activeSubscription = s.id"
                 >
                   <div class="min-w-32 w-full flex items-center justify-between">
-                    {{ p.name }}
-                    <Icon v-if="appSettingsStore.app.kernel.profile === p.id" icon="selected" />
+                    {{ s.name }}
+                    <Icon v-if="appSettingsStore.app.kernel.activeSubscription === s.id" icon="selected" />
                   </div>
                 </Button>
               </div>

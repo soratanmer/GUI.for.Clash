@@ -5,17 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { LogLevelOptions } from '@/constant/kernel'
 import { useBool } from '@/hooks'
 import { useKernelApiStore } from '@/stores'
-import {
-  isValidIPv4,
-  isValidIPv6,
-  addToRuleSet,
-  message,
-  picker,
-  buildSmartRegExp,
-  getDomainSuffixes,
-} from '@/utils'
-
-import { type PickerItem } from '@/components/Picker/index.vue'
+import { buildSmartRegExp } from '@/utils'
 
 const logType = ref<'error' | 'warning' | 'info' | 'debug'>('info')
 const keywords = ref('')
@@ -35,69 +25,6 @@ const filteredLogs = computed(() => {
     const hitName = buildSmartRegExp(keywords.value, 'i').test(v.payload)
     return hitName && hitType
   })
-})
-
-const menus: App.Menu[] = (
-  [
-    ['home.connections.addToDirect', 'direct'],
-    ['home.connections.addToProxy', 'proxy'],
-    ['home.connections.addToReject', 'reject'],
-  ] as const
-).map(([label, ruleset]) => {
-  return {
-    label,
-    handler: async ({ type, payload }: any) => {
-      if (type !== 'info') {
-        message.error('Not Support')
-        return
-      }
-      const regex = /([a-zA-Z0-9.-]+(?=:))/g
-      const matches = payload.match(regex)
-      if (!matches || matches.length < 2) {
-        message.error('Not Matched')
-        return
-      }
-
-      const options: PickerItem<string>[] = []
-
-      if (isValidIPv4(matches[1])) {
-        options.push({
-          label: t('kernel.rules.type.IP-CIDR'),
-          value: 'IP-CIDR,' + matches[1] + '/32,no-resolve',
-          description: matches[1],
-        })
-      } else if (isValidIPv6(matches[1])) {
-        options.push({
-          label: t('kernel.rules.type.IP-CIDR6'),
-          value: 'IP-CIDR6,' + matches[1] + '/32,no-resolve',
-          description: matches[1],
-        })
-      } else {
-        options.push({
-          label: t('kernel.rules.type.DOMAIN'),
-          value: 'DOMAIN,' + matches[1],
-          description: matches[1],
-        })
-        getDomainSuffixes(matches[1]).forEach((suffix) => {
-          options.push({
-            label: t('kernel.rules.type.DOMAIN-SUFFIX'),
-            value: 'DOMAIN-SUFFIX,' + suffix,
-            description: suffix,
-          })
-        })
-      }
-
-      const payloads = await picker.multi('rulesets.selectRuleType', options)
-
-      try {
-        await addToRuleSet(ruleset, payloads)
-        message.success('common.success')
-      } catch (error: any) {
-        message.error(error)
-        console.log(error)
-      }
-    },
-  }
 })
 
 const { t } = useI18n()
@@ -148,7 +75,6 @@ onUnmounted(() => {
       <div
         v-for="log in filteredLogs"
         :key="log.payload"
-        v-menu="menus.map((v) => ({ ...v, handler: () => v.handler?.(log) }))"
         class="log select-text text-12 py-2 my-4"
       >
         <span class="type inline-block text-center">{{ log.type }}</span> {{ log.payload }}

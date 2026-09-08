@@ -155,7 +155,7 @@ const initEditor = () => {
       appSettings.themeMode === Theme.Dark ? [EditorView.theme({}, { dark: true }), oneDark] : [],
     ),
     ...(props.lang === 'javascript'
-      ? [autocompletion({ override: getCompletions(props.plugin) })]
+      ? [autocompletion({ override: getCompletions() })]
       : []),
     // lint
     ...(props.lang === 'json' ? [linter(jsonParseLinter())] : []),

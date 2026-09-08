@@ -10,13 +10,8 @@ import { useAppSettingsStore, useKernelApiStore } from '@/stores'
 import {
   formatBytes,
   formatRelativeTime,
-  addToRuleSet,
   message,
-  picker,
-  getDomainSuffixes,
 } from '@/utils'
-
-import { type PickerItem } from '@/components/Picker/index.vue'
 
 import type { Column } from '@/components/Table/index.vue'
 import type { CoreApiConnectionsData } from '@/types/kernel'
@@ -191,69 +186,6 @@ const menu: App.Menu[] = [
       }
     },
   },
-  ...(
-    [
-      ['home.connections.addToDirect', 'direct'],
-      ['home.connections.addToProxy', 'proxy'],
-      ['home.connections.addToReject', 'reject'],
-    ] as const
-  ).map(([label, ruleset]) => {
-    return {
-      label,
-      handler: async (record: Record<string, any>) => {
-        const options: PickerItem<string>[] = []
-        if (record.metadata.host) {
-          options.push({
-            label: t('kernel.rules.type.DOMAIN'),
-            value: 'DOMAIN,' + record.metadata.host,
-            description: record.metadata.host,
-          })
-          const domainSuffixes = getDomainSuffixes(record.metadata.host)
-          domainSuffixes.forEach((suffix) => {
-            options.push({
-              label: t('kernel.rules.type.DOMAIN-SUFFIX'),
-              value: 'DOMAIN-SUFFIX,' + suffix,
-              description: suffix,
-            })
-          })
-        }
-        if (record.metadata.destinationIP) {
-          options.push({
-            label: t('kernel.rules.type.IP-CIDR'),
-            value: 'IP-CIDR,' + record.metadata.destinationIP + '/32,no-resolve',
-            description: record.metadata.destinationIP,
-          })
-          options.push({
-            label: t('kernel.rules.type.IP-CIDR6'),
-            value: 'IP-CIDR6,' + record.metadata.destinationIP + '/32,no-resolve',
-            description: record.metadata.destinationIP,
-          })
-        }
-        if (record.metadata.process) {
-          options.push({
-            label: t('kernel.rules.type.PROCESS-NAME'),
-            value: 'PROCESS-NAME,' + record.metadata.process,
-            description: record.metadata.process,
-          })
-        }
-        if (record.metadata.processPath) {
-          options.push({
-            label: t('kernel.rules.type.PROCESS-PATH'),
-            value: 'PROCESS-PATH,' + record.metadata.processPath,
-            description: record.metadata.processPath,
-          })
-        }
-        const payloads = await picker.multi('rulesets.selectRuleType', options)
-        try {
-          await addToRuleSet(ruleset, payloads)
-          message.success('common.success')
-        } catch (error: any) {
-          message.error(error)
-          console.log(error)
-        }
-      },
-    }
-  }),
 ]
 
 const details = ref()

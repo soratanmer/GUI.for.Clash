@@ -1,7 +1,7 @@
 type WebSocketsOptions = {
   base?: string
   bearer?: string
-  beforeConnect?: () => void
+  beforeConnect?: () => void | Promise<void>
 }
 
 type Options = { url: string; cb: (data: any) => void; params?: Record<string, any> }
@@ -9,16 +9,16 @@ type Options = { url: string; cb: (data: any) => void; params?: Record<string, a
 export class WebSockets {
   public base: string
   public bearer: string
-  public beforeConnect: () => void
+  public beforeConnect: () => void | Promise<void>
 
   constructor(options: WebSocketsOptions) {
     this.base = options.base || ''
     this.bearer = options.bearer || ''
-    this.beforeConnect = options.beforeConnect || (() => 0)
+    this.beforeConnect = options.beforeConnect || (() => {})
   }
 
-  public createWS(options: Options) {
-    this.beforeConnect()
+  public async createWS(options: Options) {
+    await this.beforeConnect()
 
     const params = { ...options.params, token: this.bearer }
     const query = new URLSearchParams(params).toString()

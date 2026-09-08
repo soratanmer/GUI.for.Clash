@@ -13,7 +13,7 @@ type RequestOptions = {
   bearer?: string
   timeout?: number
   responseType?: ResponseType
-  beforeRequest?: () => void
+  beforeRequest?: () => void | Promise<void>
 }
 
 export class Request {
@@ -21,21 +21,21 @@ export class Request {
   public bearer: string
   public timeout: number
   public responseType: string
-  public beforeRequest: () => void
+  public beforeRequest: () => void | Promise<void>
 
   constructor(options: RequestOptions = {}) {
     this.base = options.base || ''
     this.bearer = options.bearer || ''
     this.timeout = options.timeout || 10000
     this.responseType = options.responseType || ResponseType.JSON
-    this.beforeRequest = options.beforeRequest || (() => 0)
+    this.beforeRequest = options.beforeRequest || (() => {})
   }
 
   private request = async <T>(
     url: string,
     options: { method: Method; body?: Record<string, any> },
   ) => {
-    this.beforeRequest()
+    await this.beforeRequest()
 
     const init: RequestInit = {
       method: options.method,

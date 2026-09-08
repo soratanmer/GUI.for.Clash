@@ -18,7 +18,6 @@ import {
   DefaultFontFamily,
   DefaultTestTimeout,
   DefaultTestURL,
-  DefaultPluginHubSources,
   UserFilePath,
 } from '@/constant/app'
 import { DefaultConnections, DefaultCoreConfig } from '@/constant/kernel'
@@ -50,11 +49,7 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
     primaryColor: '#000',
     secondaryColor: '#545454',
     fontFamily: DefaultFontFamily,
-    profilesView: View.Grid,
     subscribesView: View.Grid,
-    rulesetsView: View.Grid,
-    pluginsView: View.Grid,
-    scheduledtasksView: View.Grid,
     windowStartState: WindowStartState.Normal,
     webviewGpuPolicy: WebviewGpuPolicy.OnDemand,
     contentProtection: false,
@@ -62,7 +57,7 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
     height: 0,
     exitOnClose: true,
     closeKernelOnExit: true,
-    autoSetSystemProxy: true,
+    autoSetSystemProxy: false,
     autoSetSystemDNS: false,
     requestProxyMode: RequestProxyMode.System,
     customProxy: '',
@@ -78,7 +73,7 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
     kernel: {
       realMemoryUsage: false,
       branch: Branch.Main,
-      profile: '',
+      activeSubscription: '',
       autoClose: true,
       unAvailable: true,
       cardMode: true,
@@ -92,23 +87,16 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
       main: undefined as any,
       alpha: undefined as any,
     },
-    plugins: {
-      sources: DefaultPluginHubSources(),
-    },
-    addPluginToMenu: false,
     addGroupToMenu: false,
-    pluginSettings: {},
     githubApiToken: '',
     githubDownloadAcceleration: false,
     githubDownloadMirror: '',
     multipleInstance: false,
-    rollingRelease: true,
     debugOutline: false,
     debugNoAnimation: false,
     debugNoRounded: false,
     debugBorder: false,
     debugUsePointer: false,
-    pages: ['Overview', 'Profiles', 'Subscriptions', 'Plugins'],
   })
 
   const saveAppSettings = debounce((config: string) => {
@@ -169,11 +157,30 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
     if (settings.githubDownloadMirror === undefined) {
       settings.githubDownloadMirror = ''
     }
-    if (!settings.plugins) {
-      settings.plugins = {
-        sources: DefaultPluginHubSources(),
-      }
+    // 向后兼容：kernel.profile → kernel.activeSubscription
+    if ('profile' in settings.kernel && !('activeSubscription' in settings.kernel)) {
+      ;(settings.kernel as any).activeSubscription = (settings.kernel as any).profile
     }
+    delete (settings.kernel as any).profile
+
+    // 移除已废弃的设置字段
+    const deprecatedFields = [
+      'profilesView',
+      'rulesetsView',
+      'pluginsView',
+      'scheduledtasksView',
+      'plugins',
+      'addPluginToMenu',
+      'pluginSettings',
+      'rollingRelease',
+      'pages',
+    ]
+    deprecatedFields.forEach((field) => {
+      if (field in settings) {
+        delete (settings as any)[field]
+      }
+    })
+
     if (settings.debugUsePointer === undefined) {
       settings.debugUsePointer = false
     }
@@ -298,7 +305,6 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
       appStore.locales,
       () => app.value.color,
       () => app.value.lang,
-      () => app.value.addPluginToMenu,
     ],
     updateTrayAndMenus,
   )

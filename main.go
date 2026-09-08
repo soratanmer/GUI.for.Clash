@@ -66,8 +66,7 @@ func main() {
 			WebviewGpuPolicy:    linux.WebviewGpuPolicy(bridge.Config.WebviewGpuPolicy),
 		},
 		AssetServer: &assetserver.Options{
-			Assets:     assets,
-			Middleware: bridge.RollingRelease,
+			Assets: assets,
 		},
 		SingleInstanceLock: &options.SingleInstanceLock{
 			UniqueId: func() string {

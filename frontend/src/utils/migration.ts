@@ -1,37 +1,4 @@
-import { SnifferDefaults } from '@/constant/profile'
 import { RequestProxyMode } from '@/enums/app'
-
-export const migrateProfiles = async (profiles: App.Profile[], save: () => Promise<string>) => {
-  let needSync = false
-
-  profiles.forEach((profile) => {
-    profile.rulesConfig.forEach((rule) => {
-      if (typeof rule.enable === 'undefined') {
-        rule.enable = true
-        needSync = true
-      }
-    })
-    if (typeof profile.dnsConfig['fake-ip-range6'] === 'undefined') {
-      profile.dnsConfig['fake-ip-range6'] = 'fc00::/18'
-      needSync = true
-    }
-    if (typeof profile.dnsConfig['direct-nameserver'] === 'undefined') {
-      profile.dnsConfig['direct-nameserver'] = []
-      needSync = true
-    }
-    if ('global-client-fingerprint' in profile.advancedConfig) {
-      delete profile.advancedConfig['global-client-fingerprint']
-      needSync = true
-    }
-    if (!profile.sniffer) {
-      profile.sniffer = SnifferDefaults()
-      profile.sniffer.enable = false
-      needSync = true
-    }
-  })
-
-  if (needSync) await save()
-}
 
 export const migrateSubscribes = async (
   subscribes: App.Subscription[],

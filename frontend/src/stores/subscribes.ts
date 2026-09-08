@@ -4,12 +4,10 @@ import { parse } from 'yaml'
 
 import { ReadFile, WriteFile, Requests } from '@/bridge'
 import { DefaultSubscribeScript, SubscribesFilePath } from '@/constant/app'
-import { PluginTriggerEvent, RequestMethod, RequestProxyMode } from '@/enums/app'
-import { usePluginsStore, useProfilesStore } from '@/stores'
+import { RequestMethod, RequestProxyMode } from '@/enums/app'
 import {
   sampleID,
   isValidSubYAML,
-  restoreProfile,
   ignoredError,
   omitArray,
   isValidBase64,
@@ -123,29 +121,46 @@ export const useSubscribesStore = defineStore('subscribes', () => {
     }
 
     let config: Record<string, any> | undefined
-    let haveRules = false
 
-    const NameIdMap: Record<string, string> = {}
-    const IdNameMap: Record<string, string> = {}
+    // ===== 完整配置检测 =====
+    if (s.type !== 'Manual' && isFullMihomoConfig(body)) {
+      const rawConfig = parse(body) as Record<string, any>
+
+      // 1. 提取代理节点信息
+      const proxiesList = rawConfig.proxies || []
+      s.proxies = proxiesList.map((proxy: Recordable) => {
+        const id = s.proxies.find((v) => v.name === proxy.name)?.id || sampleID()
+        return { id, name: proxy.name, type: proxy.type }
+      })
+
+      // 2. 保存完整配置到订阅文件
+      await WriteFile(s.path, body)
+
+      // 3. 标记为完整配置模式
+      s.configMode = 'full'
+
+      // 4. 更新用户信息
+      s.upload = userInfo.upload ?? 0
+      s.download = userInfo.download ?? 0
+      s.total = userInfo.total ?? 0
+      s.expire = userInfo.expire * 1000
+      s.updateTime = Date.now()
+
+      return
+    }
+    // ===== 完整配置检测结束 =====
+
+    // 标记为代理列表模式
+    s.configMode = 'proxy'
 
     if (isValidSubYAML(body)) {
       config = parse(body) as Record<string, any>
-      proxies = config.proxies
-      haveRules = !!config.rules
-      if (haveRules) {
-        proxies.forEach((proxy, index) => {
-          proxy.__tmp__id__ = index
-          NameIdMap[proxy.name] = proxy.__tmp__id__
-        })
-      }
+      proxies = config.proxies || []
     } else if (isValidBase64(body)) {
       proxies = [{ base64: body }]
     } else {
       throw 'Not a valid subscription data'
     }
-
-    const pluginStore = usePluginsStore()
-    proxies = await pluginStore.onSubscribeTrigger(proxies, s)
 
     if (proxies.some((proxy) => proxy.base64)) {
       throw 'You need to add the [节点转换] plugin first'
@@ -173,28 +188,8 @@ export const useSubscribesStore = defineStore('subscribes', () => {
     }
 
     proxies.forEach((proxy: any) => {
-      // Keep the original ID value of the proxy unchanged
       proxy.__id__ = s.proxies.find((v) => v.name === proxy.name)?.id || sampleID()
     })
-
-    if (s.useInternal && s.type !== 'Manual' && haveRules) {
-      proxies.forEach((proxy: any) => {
-        IdNameMap[proxy.__tmp__id__] = proxy.name
-      })
-      const profilesStore = useProfilesStore()
-      const profile = profilesStore.getProfileById(s.id)
-      const _profile = restoreProfile(config!, s.id, NameIdMap, IdNameMap)
-      if (profile) {
-        _profile.name = profile.name
-        _profile.advancedConfig.secret = profile.advancedConfig.secret
-        _profile.mixinConfig = profile.mixinConfig
-        _profile.scriptConfig = profile.scriptConfig
-        profilesStore.editProfile(profile.id, _profile)
-      } else {
-        _profile.name = s.name
-        profilesStore.addProfile(_profile)
-      }
-    }
 
     s.upload = userInfo.upload ?? 0
     s.download = userInfo.download ?? 0
@@ -206,7 +201,7 @@ export const useSubscribesStore = defineStore('subscribes', () => {
     const fn = new window.AsyncFunction(
       'proxies',
       'subscription',
-      `${s.script}; return await ${PluginTriggerEvent.OnSubscribe}(proxies, subscription)`,
+      `${s.script}; return await onSubscribe(proxies, subscription)`,
     ) as (
       proxies: Recordable[],
       subscription: App.Subscription,
@@ -218,8 +213,24 @@ export const useSubscribesStore = defineStore('subscribes', () => {
     s.proxies = _proxies.map(({ name, type, __id__ }) => ({ id: __id__, name, type }))
 
     if (s.type === 'Http' || (s.type === 'File' && s.url !== s.path)) {
-      proxies = omitArray(_proxies, ['__id__', '__tmp__id__'])
+      proxies = omitArray(_proxies, ['__id__'])
       await WriteFile(s.path, stringifyNoFolding({ proxies }))
+    }
+  }
+
+  // 检测是否为完整 mihomo 配置文件
+  const isFullMihomoConfig = (yamlContent: string): boolean => {
+    try {
+      const parsed = parse(yamlContent)
+      const hasProxies = Array.isArray(parsed.proxies) && parsed.proxies.length > 0
+      const hasProviders =
+        parsed['proxy-providers'] && Object.keys(parsed['proxy-providers']).length > 0
+      const hasRules = Array.isArray(parsed.rules) && parsed.rules.length > 0
+      const hasRuleProviders =
+        parsed['rule-providers'] && Object.keys(parsed['rule-providers']).length > 0
+      return (hasProxies || hasProviders) && (hasRules || hasRuleProviders)
+    } catch {
+      return false
     }
   }
 
@@ -281,7 +292,6 @@ export const useSubscribesStore = defineStore('subscribes', () => {
     return {
       id: id,
       name: name,
-      useInternal: false,
       upload: 0,
       download: 0,
       total: 0,
@@ -310,6 +320,7 @@ export const useSubscribesStore = defineStore('subscribes', () => {
       },
       script: DefaultSubscribeScript,
       proxies: [],
+      configMode: 'proxy' as const,
     }
   }
 

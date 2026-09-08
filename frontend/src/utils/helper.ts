@@ -1,5 +1,3 @@
-import { parse } from 'yaml'
-
 import { deleteConnection, getConnections, useProxy } from '@/api/kernel'
 import {
   AbsolutePath,
@@ -8,28 +6,23 @@ import {
   FileExists,
   GetEnv,
   GetSystemProxy,
-  ReadFile,
   RemoveFile,
   WindowReloadApp,
   WriteFile,
 } from '@/bridge'
 import { CoreWorkingDirectory } from '@/constant/kernel'
 import { OS, RequestProxyMode } from '@/enums/app'
-import { ProxyGroupType, RulesetBehavior, RulesetFormat } from '@/enums/kernel'
+import { ProxyGroupType } from '@/enums/kernel'
 import i18n from '@/lang'
 import {
   useAppSettingsStore,
   useAppStore,
   useEnvStore,
   useKernelApiStore,
-  usePluginsStore,
-  useRulesetsStore,
 } from '@/stores'
 import {
   formatProxyHost,
-  ignoredError,
   normalizeRequestProxy,
-  stringifyNoFolding,
   message,
   confirm,
   APP_TITLE,
@@ -289,71 +282,14 @@ export const handleChangeMode = async (mode: 'direct' | 'global' | 'rule') => {
   await Promise.all(promises)
 }
 
-export const addToRuleSet = async (id: 'direct' | 'reject' | 'proxy', payloads: string[]) => {
-  const path = `data/rulesets/${id}.yaml`
-
-  const rulesetsStoe = useRulesetsStore()
-  let ruleset = rulesetsStoe.getRulesetById(id)
-  if (!ruleset) {
-    ruleset = {
-      id,
-      name: id,
-      updateTime: 0,
-      type: 'Manual',
-      behavior: RulesetBehavior.Classical,
-      format: RulesetFormat.Yaml,
-      url: '',
-      path,
-      count: 0,
-      disabled: false,
-    }
-    await rulesetsStoe.addRuleset(ruleset)
-  }
-
-  const content = (await ignoredError(ReadFile, path)) || '{}'
-  const { payload = [] } = parse(content)
-  payload.unshift(...payloads)
-  await WriteFile(path, stringifyNoFolding({ payload: [...new Set(payload)] }))
-  await rulesetsStoe.updateRuleset(id)
-}
-
 export const reloadApp = async () => {
-  const { t } = i18n.global
-  const appStore = useAppStore()
-  const pluginsStore = usePluginsStore()
-
-  appStore.isAppReloading = true
-
-  let timedout = false
-  const { destroy } = message.info('titlebar.reloadPending', 10 * 60 * 1000)
-
-  const timeoutId = setTimeout(async () => {
-    timedout = true
-    appStore.isAppReloading = false
-    destroy()
-    confirm('Warning', t('titlebar.reloadTimeout')).then(WindowReloadApp)
-  }, 10_000)
-
-  try {
-    await pluginsStore.onReloadTrigger()
-    if (!timedout) {
-      clearTimeout(timeoutId)
-      WindowReloadApp()
-    }
-  } catch (err: any) {
-    clearTimeout(timeoutId)
-    confirm('Error', t('titlebar.reloadError', { reason: err })).then(WindowReloadApp)
-  }
-
-  appStore.isAppReloading = false
-  destroy()
+  WindowReloadApp()
 }
 
 export const exitApp = async () => {
   const { t } = i18n.global
   const appStore = useAppStore()
   const envStore = useEnvStore()
-  const pluginsStore = usePluginsStore()
   const appSettings = useAppSettingsStore()
   const kernelApiStore = useKernelApiStore()
 
@@ -376,7 +312,6 @@ export const exitApp = async () => {
         await envStore.clearSystemProxy()
       }
     }
-    await pluginsStore.onShutdownTrigger()
     if (!timedout) {
       clearTimeout(timeoutId)
       ExitApp()

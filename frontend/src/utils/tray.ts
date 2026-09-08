@@ -1,5 +1,4 @@
 import {
-  Notify,
   RestartApp,
   EventsOn,
   EventsOff,
@@ -15,7 +14,6 @@ import {
   useAppSettingsStore,
   useKernelApiStore,
   useEnvStore,
-  usePluginsStore,
   useAppStore,
 } from '@/stores'
 import {
@@ -80,10 +78,6 @@ const getTrayMenus = () => {
   const envStore = useEnvStore()
   const appSettings = useAppSettingsStore()
   const kernelApiStore = useKernelApiStore()
-  const pluginsStore = usePluginsStore()
-
-  let pluginMenus: App.MenuItem[] = []
-  let pluginMenusHidden = !appSettings.app.addPluginToMenu
 
   let groupMenus: App.MenuItem[] = []
   const groupMenusHidden = !appSettings.app.addGroupToMenu
@@ -148,30 +142,6 @@ const getTrayMenus = () => {
           }),
         }
       })
-  }
-
-  if (!pluginMenusHidden) {
-    const filtered = pluginsStore.plugins.filter(
-      (plugin) => Object.keys(plugin.menus).length && !plugin.disabled,
-    )
-    pluginMenusHidden = filtered.length === 0
-    pluginMenus = filtered.map(({ id, name, menus }) => {
-      return {
-        type: 'item',
-        text: name,
-        children: Object.entries(menus).map(([text, event]) => {
-          return {
-            type: 'item',
-            text,
-            event: () => {
-              pluginsStore.manualTrigger(id, event as any).catch((err: any) => {
-                Notify('Error', err.message || err)
-              })
-            },
-          }
-        }),
-      }
-    })
   }
 
   const trayMenus: App.MenuItem[] = [
@@ -309,12 +279,6 @@ const getTrayMenus = () => {
       ],
     },
     {
-      type: 'item',
-      text: 'tray.plugins',
-      hidden: pluginMenusHidden,
-      children: pluginMenus,
-    },
-    {
       type: 'separator',
     },
     {
@@ -337,14 +301,11 @@ const getTrayMenus = () => {
 export const updateTrayAndMenus = debounce(async () => {
   const trayMenus = getTrayMenus()
   const trayIcons = getTrayIcons()
-  const pluginsStore = usePluginsStore()
 
   const isDarwin = useEnvStore().env.os === OS.Darwin
   const title = isDarwin ? '' : APP_TITLE
 
   const tray = { icon: trayIcons, title, tooltip: APP_TITLE + ' ' + APP_VERSION }
 
-  const [finalTray, finalMenus] = await pluginsStore.onTrayUpdateTrigger(tray, trayMenus)
-
-  await UpdateTrayAndMenus(finalTray, generateUniqueEventsForMenu(finalMenus) as any)
+  await UpdateTrayAndMenus(tray, generateUniqueEventsForMenu(trayMenus) as any)
 }, 500)

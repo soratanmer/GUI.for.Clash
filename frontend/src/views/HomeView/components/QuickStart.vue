@@ -2,7 +2,7 @@
 import { h, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useProfilesStore, useAppSettingsStore, useSubscribesStore } from '@/stores'
+import { useAppSettingsStore, useSubscribesStore } from '@/stores'
 import { message, sampleID } from '@/utils'
 
 import Button from '@/components/Button/index.vue'
@@ -13,7 +13,6 @@ const loading = ref(false)
 
 const { t } = useI18n()
 const subscribeStore = useSubscribesStore()
-const profilesStore = useProfilesStore()
 const appSettingsStore = useAppSettingsStore()
 
 const handleCancel = inject('cancel') as any
@@ -39,16 +38,7 @@ const handleSave = async () => {
     return
   }
 
-  const profile = profilesStore.getProfileTemplate(name.value)
-
-  if (profile.proxyGroupsConfig[0] && profile.proxyGroupsConfig[1]) {
-    profile.proxyGroupsConfig[0].use = [sub.id]
-    profile.proxyGroupsConfig[1].use = [sub.id]
-  }
-
-  await profilesStore.addProfile(profile)
-
-  appSettingsStore.app.kernel.profile = profile.id
+  appSettingsStore.app.kernel.activeSubscription = sub.id
 
   message.success('home.initSuccessful')
 

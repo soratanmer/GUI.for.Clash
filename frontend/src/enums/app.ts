@@ -56,56 +56,6 @@ export enum RequestProxyMode {
   Custom = 'custom',
 }
 
-export enum ScheduledTasksType {
-  UpdateSubscription = 'update::subscription',
-  UpdateRuleset = 'update::ruleset',
-  UpdatePlugin = 'update::plugin',
-  UpdateAllSubscription = 'update::all::subscription',
-  UpdateAllRuleset = 'update::all::ruleset',
-  UpdateAllPlugin = 'update::all::plugin',
-  RunPlugin = 'run::plugin',
-  RunScript = 'run::script',
-}
-
-export enum PluginTrigger {
-  OnEnabled = 'on::enabled',
-  OnDisabled = 'on::disabled',
-  OnManual = 'on::manual',
-  OnSubscribe = 'on::subscribe',
-  OnGenerate = 'on::generate',
-  OnStartup = 'on::startup',
-  OnShutdown = 'on::shutdown',
-  OnReady = 'on::ready',
-  OnReload = 'on::reload',
-  OnCoreStarted = 'on::core::started',
-  OnCoreStopped = 'on::core::stopped',
-  OnBeforeCoreStart = 'on::before::core::start',
-  OnBeforeCoreStop = 'on::before::core::stop',
-  OnTrayUpdate = 'on::tray::update',
-}
-
-export enum PluginTriggerEvent {
-  OnEnabled = 'onEnabled',
-  OnDisabled = 'onDisabled',
-  OnDispose = 'onDispose',
-  OnInstall = 'onInstall',
-  OnUninstall = 'onUninstall',
-  OnManual = 'onRun',
-  OnTrayUpdate = 'onTrayUpdate',
-  OnSubscribe = 'onSubscribe',
-  OnGenerate = 'onGenerate',
-  OnStartup = 'onStartup',
-  OnShutdown = 'onShutdown',
-  OnReady = 'onReady',
-  OnReload = 'onReload',
-  OnTask = 'onTask',
-  OnConfigure = 'onConfigure',
-  OnCoreStarted = 'onCoreStarted',
-  OnCoreStopped = 'onCoreStopped',
-  OnBeforeCoreStart = 'onBeforeCoreStart',
-  OnBeforeCoreStop = 'onBeforeCoreStop',
-}
-
 export enum RequestMethod {
   Get = 'GET',
   Post = 'POST',

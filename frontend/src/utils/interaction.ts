@@ -132,29 +132,13 @@ class Message {
 }
 
 const ResourceTypeMap = {
-  profile: 'profile',
   subscription: 'subscription',
-  ruleset: 'ruleset',
-  plugin: 'plugin',
-  scheduledtask: 'scheduledtask',
-  1: 'profile',
   2: 'subscription',
-  3: 'ruleset',
-  4: 'plugin',
-  5: 'scheduledtask',
 } as const
 
 type ResourceResultMap = {
-  profile: App.Profile
   subscription: App.Subscription
-  ruleset: App.RuleSet
-  plugin: App.Plugin
-  scheduledtask: App.ScheduledTask
-  1: App.Profile
   2: App.Subscription
-  3: App.RuleSet
-  4: App.Plugin
-  5: App.ScheduledTask
 }
 
 class Picker {

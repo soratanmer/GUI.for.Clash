@@ -5,7 +5,7 @@ import { useI18n, I18nT } from 'vue-i18n'
 import { BrowserOpenURL, ClipboardSetText, RemoveFile } from '@/bridge'
 import { DraggableOptions } from '@/constant/app'
 import { RequestProxyMode, View } from '@/enums/app'
-import { useSubscribesStore, useAppSettingsStore, usePluginsStore, useAppStore } from '@/stores'
+import { useSubscribesStore, useAppSettingsStore, useAppStore } from '@/stores'
 import {
   formatBytes,
   formatRelativeTime,
@@ -79,10 +79,9 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const subscribeStore = useSubscribesStore()
 const appSettingsStore = useAppSettingsStore()
-const pluginsStore = usePluginsStore()
 
 const generateMenus = (subscription: App.Subscription) => {
-  const builtInMenus: App.Menu[] = menuList.map((v) => ({
+  return menuList.map((v) => ({
     ...v,
     handler: () => v.handler?.(subscription.id),
     children: v.children?.map((child) => ({
@@ -90,44 +89,6 @@ const generateMenus = (subscription: App.Subscription) => {
       handler: () => child.handler?.(subscription.id),
     })),
   }))
-
-  const contextMenus = pluginsStore.plugins.filter(
-    (plugin) => Object.keys(plugin.context.subscriptions).length !== 0,
-  )
-
-  if (contextMenus.length !== 0) {
-    builtInMenus.push(
-      {
-        label: '',
-        separator: true,
-      },
-      {
-        label: 'common.more',
-        children: contextMenus.reduce((prev, plugin) => {
-          const menus = Object.entries(plugin.context.subscriptions)
-          return prev.concat(
-            menus.map(([title, fn]) => {
-              return {
-                label: title,
-                handler: async () => {
-                  try {
-                    plugin.running = true
-                    await pluginsStore.manualTrigger(plugin.id, fn as any, subscription)
-                  } catch (error: any) {
-                    message.error(error)
-                  } finally {
-                    plugin.running = false
-                  }
-                },
-              }
-            }),
-          )
-        }, [] as App.Menu[]),
-      },
-    )
-  }
-
-  return builtInMenus
 }
 
 const handleShowSubForm = (id?: string) => {

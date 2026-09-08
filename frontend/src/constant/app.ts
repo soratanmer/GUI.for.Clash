@@ -2,36 +2,19 @@ import {
   Color,
   Lang,
   ControllerCloseMode,
-  PluginTrigger,
   RequestMethod,
   RequestProxyMode,
-  ScheduledTasksType,
   Theme,
   View,
   WebviewGpuPolicy,
   WindowStartState,
 } from '@/enums/app'
-import { APP_TITLE } from '@/utils'
 
 export const LocalesFilePath = 'data/locales'
 
 export const UserFilePath = 'data/user.yaml'
 
-export const ProfilesFilePath = 'data/profiles.yaml'
-
 export const SubscribesFilePath = 'data/subscribes.yaml'
-
-export const RulesetsFilePath = 'data/rulesets.yaml'
-
-export const PluginsFilePath = 'data/plugins.yaml'
-
-export const ScheduledTasksFilePath = 'data/scheduledtasks.yaml'
-
-export const PluginHubFilePath = 'data/.cache/plugin-list.json'
-
-export const RulesetHubFilePath = 'data/.cache/ruleset-list.json'
-
-export const RollingReleaseDirectory = 'data/rolling-release'
 
 export const DefaultFontFamily =
   'system-ui, "Microsoft YaHei UI", "Source Han Sans CN", "Twemoji Mozilla", sans-serif'
@@ -136,57 +119,10 @@ export const WebviewGpuPolicyOptions = [
   { label: 'settings.webviewGpuPolicy.never', value: WebviewGpuPolicy.Never },
 ]
 
-export const DefaultPluginHubSources = () => [
-  {
-    enable: true,
-    name: 'General',
-    url: 'https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/generic.json',
-  },
-  {
-    enable: true,
-    name: APP_TITLE,
-    url: `https://raw.githubusercontent.com/GUI-for-Cores/Plugin-Hub/main/plugins/${
-      {
-        'GUI.for.Clash': 'gfc',
-        'GUI.for.SingBox': 'gfs',
-      }[APP_TITLE]
-    }.json`,
-  },
-]
-
 // vue-draggable-plus config
 export const DraggableOptions = {
   animation: 150,
 }
-
-export const PluginsTriggerOptions = [
-  { label: 'plugin.on::startup', value: PluginTrigger.OnStartup },
-  { label: 'plugin.on::ready', value: PluginTrigger.OnReady },
-  { label: 'plugin.on::reload', value: PluginTrigger.OnReload },
-  { label: 'plugin.on::shutdown', value: PluginTrigger.OnShutdown },
-  { label: 'plugin.on::manual', value: PluginTrigger.OnManual },
-  { label: 'plugin.on::generate', value: PluginTrigger.OnGenerate },
-  { label: 'plugin.on::subscribe', value: PluginTrigger.OnSubscribe },
-  { label: 'plugin.on::tray::update', value: PluginTrigger.OnTrayUpdate },
-  { label: 'plugin.on::before::core::start', value: PluginTrigger.OnBeforeCoreStart },
-  { label: 'plugin.on::core::started', value: PluginTrigger.OnCoreStarted },
-  { label: 'plugin.on::before::core::stop', value: PluginTrigger.OnBeforeCoreStop },
-  { label: 'plugin.on::core::stopped', value: PluginTrigger.OnCoreStopped },
-]
-
-export const ScheduledTaskOptions = [
-  { label: 'scheduledtask.update::subscription', value: ScheduledTasksType.UpdateSubscription },
-  { label: 'scheduledtask.update::ruleset', value: ScheduledTasksType.UpdateRuleset },
-  { label: 'scheduledtask.update::plugin', value: ScheduledTasksType.UpdatePlugin },
-  { label: 'scheduledtask.run::plugin', value: ScheduledTasksType.RunPlugin },
-  { label: 'scheduledtask.run::script', value: ScheduledTasksType.RunScript },
-  {
-    label: 'scheduledtask.update::all::subscription',
-    value: ScheduledTasksType.UpdateAllSubscription,
-  },
-  { label: 'scheduledtask.update::all::ruleset', value: ScheduledTasksType.UpdateAllRuleset },
-  { label: 'scheduledtask.update::all::plugin', value: ScheduledTasksType.UpdateAllPlugin },
-]
 
 export const DefaultSubscribeScript = `const onSubscribe = async (proxies, subscription) => {\n  return { proxies, subscription }\n}`
 

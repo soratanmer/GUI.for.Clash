@@ -54,11 +54,7 @@ declare namespace App {
     primaryColor: string
     secondaryColor: string
     fontFamily: string
-    profilesView: View
     subscribesView: View
-    rulesetsView: View
-    pluginsView: View
-    scheduledtasksView: View
     windowStartState: WindowStartState
     webviewGpuPolicy: WebviewGpuPolicy
     contentProtection: boolean
@@ -85,7 +81,7 @@ declare namespace App {
     kernel: {
       realMemoryUsage: boolean
       branch: 'main' | 'alpha'
-      profile: string
+      activeSubscription: string
       autoClose: boolean
       unAvailable: boolean
       cardMode: boolean
@@ -105,92 +101,21 @@ declare namespace App {
         args: string[]
       }
     }
-    plugins: {
-      sources: { enable: boolean; name: string; url: string }[]
-    }
-    addPluginToMenu: boolean
     addGroupToMenu: boolean
-    pluginSettings: Record<string, Record<string, any>>
     githubApiToken: string
     githubDownloadAcceleration: boolean
     githubDownloadMirror: string
     multipleInstance: boolean
-    rollingRelease: boolean
     debugOutline: boolean
     debugNoAnimation: boolean
     debugNoRounded: boolean
     debugBorder: boolean
     debugUsePointer: boolean
-    pages: string[]
-  }
-
-  interface Plugin {
-    id: string
-    version: string
-    name: string
-    description: string
-    type: 'Http' | 'File'
-    url: string
-    path: string
-    triggers: (
-      | 'on::enabled'
-      | 'on::disabled'
-      | 'on::manual'
-      | 'on::subscribe'
-      | 'on::generate'
-      | 'on::startup'
-      | 'on::shutdown'
-      | 'on::ready'
-      | 'on::reload'
-      | 'on::core::started'
-      | 'on::core::stopped'
-      | 'on::before::core::start'
-      | 'on::before::core::stop'
-      | 'on::tray::update'
-    )[]
-    tags: string[]
-    hasUI: boolean
-    group: string
-    menus: Record<string, string>
-    context: {
-      profiles: Recordable
-      subscriptions: Recordable
-      rulesets: Recordable
-      plugins: Recordable
-      scheduledtasks: Recordable
-    }
-    configuration: {
-      id: string
-      title: string
-      description: string
-      key: string
-      component:
-        | 'CheckBox'
-        | 'CodeEditor'
-        | 'Input'
-        | 'InputList'
-        | 'KeyValueEditor'
-        | 'Radio'
-        | 'Select'
-        | 'MultipleSelect'
-        | 'Switch'
-        | 'ColorPicker'
-        | ''
-      value: any
-      options: any[]
-    }[]
-    disabled: boolean
-    status: number // 0: Normal 1: Running 2: Stopped
-    // Not Config
-    updating?: boolean
-    loading?: boolean
-    running?: boolean
   }
 
   interface Subscription {
     id: string
     name: string
-    useInternal: boolean
     upload: number
     download: number
     total: number
@@ -217,51 +142,9 @@ declare namespace App {
       response: Recordable
     }
     script: string
+    configMode: 'proxy' | 'full'
     // Not Config
     updating?: boolean
-  }
-
-  interface RuleSet {
-    id: string
-    name: string
-    updateTime: number
-    disabled: boolean
-    type: 'Http' | 'File' | 'Manual'
-    behavior: RulesetBehavior
-    format: RulesetFormat
-    path: string
-    url: string
-    count: number
-    // Not Config
-    updating?: boolean
-  }
-
-  interface RulesetHub {
-    geosite: string
-    geoip: string
-    list: { name: string; type: 'geosite' | 'geoip'; description: string; count: number }[]
-  }
-
-  interface ScheduledTask {
-    id: string
-    name: string
-    type:
-      | 'update::subscription'
-      | 'update::ruleset'
-      | 'update::plugin'
-      | 'update::all::subscription'
-      | 'update::all::ruleset'
-      | 'update::all::plugin'
-      | 'run::plugin'
-      | 'run::script'
-    subscriptions: string[]
-    rulesets: string[]
-    plugins: string[]
-    script: string
-    cron: string
-    notification: boolean
-    disabled: boolean
-    lastTime: number
   }
 
   interface CustomActionApi {
@@ -311,161 +194,4 @@ declare namespace App {
     | 'inline'
     | 'InsertionPoint'
 
-  interface Profile {
-    id: string
-    name: string
-    generalConfig: {
-      mode: string
-      ipv6: boolean
-      'mixed-port': number
-      'allow-lan': boolean
-      'log-level': string
-      'interface-name': string
-    }
-    advancedConfig: {
-      port: number
-      'socks-port': number
-      secret: string
-      'external-controller': string
-      'external-ui': string
-      'keep-alive-interval': number
-      'find-process-mode': string
-      'external-controller-tls': string
-      'external-ui-name': string
-      'external-ui-url': string
-      'unified-delay': boolean
-      'tcp-concurrent': boolean
-      authentication: string[]
-      'skip-auth-prefixes': string[]
-      tls: {
-        certificate: string
-        'private-key': string
-      }
-      'geodata-mode': boolean
-      'geo-auto-update': boolean
-      'geo-update-interval': number
-      'geodata-loader': string
-      'geosite-matcher': string
-      'geox-url': {
-        geoip: string
-        geosite: string
-        mmdb: string
-        asn: string
-      }
-      'global-ua': string
-      profile: {
-        'store-selected'?: boolean
-        'store-fake-ip'?: boolean
-      }
-      'lan-allowed-ips': string[]
-      'lan-disallowed-ips': string[]
-    }
-    tunConfig: {
-      enable: boolean
-      stack: string
-      'auto-route': boolean
-      'route-address': string[]
-      'route-exclude-address': string[]
-      'auto-detect-interface': boolean
-      'dns-hijack': string[]
-      device: string
-      mtu: number
-      'strict-route': boolean
-      'endpoint-independent-nat': boolean
-    }
-    dnsConfig: {
-      enable: boolean
-      listen: string
-      'use-hosts': boolean
-      'use-system-hosts': boolean
-      ipv6: boolean
-      'default-nameserver': string[]
-      nameserver: string[]
-      'enhanced-mode': string
-      'fake-ip-range': string
-      'fake-ip-range6': string
-      'fake-ip-filter-mode': string
-      'fake-ip-filter': string[]
-      'prefer-h3': boolean
-      fallback: string[]
-      'proxy-server-nameserver': string[]
-      'direct-nameserver': string[]
-      'nameserver-policy': Record<string, any>
-      'fallback-filter': {
-        geoip: boolean
-        'geoip-code': string
-        geosite: string[]
-        ipcidr: string[]
-        domain: string[]
-      }
-      hosts: Record<string, string>
-    }
-    proxyGroupsConfig: {
-      id: string
-      name: string
-      type: ProxyGroup
-      proxies: {
-        id: string
-        type: string
-        name: string
-      }[]
-      url: string
-      interval: number
-      strategy: string
-      use: string[]
-      tolerance: number
-      lazy: boolean
-      'disable-udp': boolean
-      filter: string
-      'exclude-filter': string
-      hidden: boolean
-      icon: string
-    }[]
-    rulesConfig: {
-      id: string
-      enable: boolean
-      type: RuleType
-      payload: string
-      proxy: string
-      'no-resolve': boolean
-      'ruleset-type': 'file' | 'http' | 'inline'
-      'ruleset-name': string
-      'ruleset-behavior': RulesetBehavior
-      'ruleset-format': RulesetFormat
-      'ruleset-proxy': string
-      'ruleset-interval': number
-    }[]
-    sniffer: {
-      enable: boolean
-      'force-dns-mapping': boolean
-      'parse-pure-ip': boolean
-      'override-destination': boolean
-      'force-domain': string[]
-      'skip-domain': string[]
-      'skip-src-address': string[]
-      'skip-dst-address': string[]
-      sniff: {
-        HTTP: {
-          enable: boolean
-          ports: string[]
-        }
-        TLS: {
-          enable: boolean
-          ports: string[]
-        }
-        QUIC: {
-          enable: boolean
-          ports: string[]
-        }
-      }
-    }
-    mixinConfig: {
-      priority: 'mixin' | 'gui'
-      format: 'json' | 'yaml'
-      config: string
-    }
-    scriptConfig: {
-      code: string
-    }
-  }
 }

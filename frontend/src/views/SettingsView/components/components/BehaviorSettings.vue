@@ -155,10 +155,6 @@ if (envStore.env.os === OS.Windows) {
       <Radio v-model="appSettings.app.webviewGpuPolicy" :options="WebviewGpuPolicyOptions" />
     </div>
     <div class="px-8 py-12 flex items-center justify-between">
-      <div class="text-16 font-bold">{{ $t('settings.addPluginToMenu') }}</div>
-      <Switch v-model="appSettings.app.addPluginToMenu" />
-    </div>
-    <div class="px-8 py-12 flex items-center justify-between">
       <div class="text-16 font-bold">{{ $t('settings.addGroupToMenu') }}</div>
       <Switch v-model="appSettings.app.addGroupToMenu" />
     </div>

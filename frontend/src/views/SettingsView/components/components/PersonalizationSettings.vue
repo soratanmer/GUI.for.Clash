@@ -2,17 +2,8 @@
 import { BrowserOpenURL, MakeDir, OpenDir } from '@/bridge'
 import { ColorOptions, DefaultFontFamily, LocalesFilePath, ThemeOptions } from '@/constant/app'
 import { Color } from '@/enums/app'
-import routes from '@/router/routes'
 import { useAppSettingsStore, useAppStore } from '@/stores'
 import { APP_LOCALES_URL } from '@/utils'
-
-const pages = routes.flatMap((route) => {
-  if (route.meta?.hidden !== undefined) return []
-  return {
-    label: route.meta!.name,
-    value: route.name as string,
-  }
-})
 
 const appStore = useAppStore()
 const appSettings = useAppSettingsStore()
@@ -85,10 +76,6 @@ const handleOpenLocalesFolder = async () => {
           />
         </template>
       </Input>
-    </div>
-    <div class="px-8 py-12 flex items-center justify-between">
-      <div class="text-16 font-bold">{{ $t('settings.pages.name') }}</div>
-      <CheckBox v-model="appSettings.app.pages" :options="pages" />
     </div>
   </Card>
 </template>

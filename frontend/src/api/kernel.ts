@@ -1,6 +1,9 @@
+import { parse } from 'yaml'
+
 import { Request } from '@/api/request'
 import { WebSockets } from '@/api/websocket'
-import { useProfilesStore } from '@/stores'
+import { ReadFile } from '@/bridge'
+import { CoreConfigFilePath } from '@/constant/kernel'
 import { formatProxyHost, normalizeProxyHost } from '@/utils'
 
 import type {
@@ -64,18 +67,19 @@ const resolveController = (controller: string, defaultPort: number) => {
   }
 }
 
-const setupCoreApi = (protocol: 'http' | 'ws') => {
-  const { currentProfile: profile } = useProfilesStore()
-
+const setupCoreApi = async (protocol: 'http' | 'ws') => {
   let base = `${protocol}://127.0.0.1:20113`
   let bearer = ''
 
-  if (profile) {
-    const controller = profile.advancedConfig['external-controller'] || '127.0.0.1:20113'
+  try {
+    const content = await ReadFile(CoreConfigFilePath)
+    const config = parse(content) || {}
+    const controller = config['external-controller'] || '127.0.0.1:20113'
     const { host, port } = resolveController(controller, 20113)
-    // TODO: tls
     base = `${protocol}://${formatProxyHost(host)}:${port}`
-    bearer = profile.advancedConfig.secret
+    bearer = config.secret || ''
+  } catch {
+    // 使用默认值
   }
 
   if (protocol === 'http') {
@@ -148,9 +152,9 @@ export const onLogs = createCoreWSHandlerRegister('logs')
 export const onMemory = createCoreWSHandlerRegister('memory')
 export const onTraffic = createCoreWSHandlerRegister('traffic')
 export const onConnections = createCoreWSHandlerRegister('connections')
-export const initWebsocket = () => {
-  Object.values(wsChannels).forEach((channel) => {
-    const { connect, disconnect } = websocket.createWS({
+export const initWebsocket = async () => {
+  for (const channel of Object.values(wsChannels)) {
+    const { connect, disconnect } = await websocket.createWS({
       url: channel.url,
       params: channel.params,
       cb: (data) => channel.handlers.forEach((cb) => cb(data)),
@@ -162,7 +166,7 @@ export const initWebsocket = () => {
       channel.connect()
       channel.isActive = true
     }
-  })
+  }
 }
 export const destroyWebsocket = () => {
   Object.values(wsChannels).forEach((channel) => {
