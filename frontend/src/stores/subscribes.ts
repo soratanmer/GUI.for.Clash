@@ -162,10 +162,6 @@ export const useSubscribesStore = defineStore('subscribes', () => {
       throw 'Not a valid subscription data'
     }
 
-    if (proxies.some((proxy) => proxy.base64)) {
-      throw 'You need to add the [节点转换] plugin first'
-    }
-
     if (s.type !== 'Manual') {
       const r1 = s.include && buildSmartRegExp(s.include)
       const r2 = s.exclude && buildSmartRegExp(s.exclude)

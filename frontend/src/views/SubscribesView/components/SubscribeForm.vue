@@ -87,7 +87,7 @@ defineExpose({ modalSlots })
         :options="[
           { label: 'common.http', value: 'Http' },
           { label: 'common.file', value: 'File' },
-          { label: 'common.manual', value: 'Manual' },
+          { label: 'subscribe.manual', value: 'Manual' },
         ]"
       />
     </div>

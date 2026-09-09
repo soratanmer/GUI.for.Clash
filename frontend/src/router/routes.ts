@@ -35,17 +35,4 @@ const routes: RouteRecordRaw[] = [
   },
 ]
 
-if (import.meta.env.DEV) {
-  routes.push({
-    path: '/playground',
-    name: 'Playground',
-    component: () => import('@/views/PlaygroundView/index.vue'),
-    meta: {
-      name: 'Develop',
-      icon: 'code',
-      hidden: false,
-    },
-  })
-}
-
 export default routes

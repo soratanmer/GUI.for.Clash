@@ -1,4 +1,3 @@
-import { OS } from '@/enums/app'
 import {
   ClashMode,
   LogLevel,
@@ -8,7 +7,6 @@ import {
   RuleType,
   TunStack,
 } from '@/enums/kernel'
-import { useEnvStore } from '@/stores'
 
 export const CoreWorkingDirectory = 'data/mihomo'
 export const CorePidFilePath = CoreWorkingDirectory + '/pid.txt'
@@ -268,15 +266,8 @@ export const DefaultConnections = () => {
 }
 
 export const DefaultCoreConfig = () => {
-  const { env } = useEnvStore()
-  const separator = env.os === OS.Windows ? ';' : ':'
-
   return {
-    env: {
-      SAFE_PATHS: ['$APP_BASE_PATH/data/subscribes', '$APP_BASE_PATH/data/rulesets'].join(
-        separator,
-      ),
-    },
+    env: {},
     args: ['-d', '$APP_BASE_PATH/$CORE_BASE_PATH'],
   }
 }
