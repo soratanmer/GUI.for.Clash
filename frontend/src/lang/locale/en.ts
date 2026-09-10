@@ -397,6 +397,9 @@ export default {
     editSourceFile: 'Edit Proxies(Source)',
     copySub: 'Copy Link',
     script: 'Script',
+    setActive: 'Set Active',
+    active: 'Active',
+    setActiveSuccess: 'Subscription switched',
     proxies: {
       type: 'Protocol',
       name: 'Name',

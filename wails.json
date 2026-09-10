@@ -12,6 +12,8 @@
     "email": "GUI.for.Cores@github.com"
   },
   "info": {
+    "productVersion": "2.0.0",
+    "companyName": "GUI.for.Cores",
     "copyright": "Copyright",
     "comments": "https://github.com/GUI-for-Cores"
   }

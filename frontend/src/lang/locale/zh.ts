@@ -396,6 +396,9 @@ export default {
     editSourceFile: '编辑节点(源文件)',
     copySub: '复制订阅链接',
     script: '脚本',
+    setActive: '设为激活订阅',
+    active: '已激活',
+    setActiveSuccess: '已切换订阅',
     proxies: {
       type: '协议',
       name: '名称',

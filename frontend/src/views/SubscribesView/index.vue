@@ -5,7 +5,7 @@ import { useI18n, I18nT } from 'vue-i18n'
 import { BrowserOpenURL, ClipboardSetText, RemoveFile } from '@/bridge'
 import { DraggableOptions } from '@/constant/app'
 import { RequestProxyMode, View } from '@/enums/app'
-import { useSubscribesStore, useAppSettingsStore, useAppStore } from '@/stores'
+import { useSubscribesStore, useAppSettingsStore, useAppStore, useKernelApiStore } from '@/stores'
 import {
   formatBytes,
   formatRelativeTime,
@@ -22,6 +22,10 @@ import SubscribeForm from './components/SubscribeForm.vue'
 import SubscribeScript from './components/SubscribeScript.vue'
 
 const menuList: App.Menu[] = [
+  {
+    label: 'subscribes.setActive',
+    handler: (id: string) => handleSetActive(id),
+  },
   {
     label: 'subscribes.editProxies',
     handler: (id: string) => handleEditProxies(id),
@@ -79,6 +83,24 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const subscribeStore = useSubscribesStore()
 const appSettingsStore = useAppSettingsStore()
+const kernelApiStore = useKernelApiStore()
+
+const handleSetActive = async (id: string) => {
+  if (appSettingsStore.app.kernel.activeSubscription === id) return
+  appSettingsStore.app.kernel.activeSubscription = id
+  if (kernelApiStore.running) {
+    // 切换订阅后无条件自动重启内核以应用新订阅（不受 autoRestartKernel 开关影响）
+    try {
+      await kernelApiStore.restartCore()
+      message.success(t('subscribes.setActiveSuccess'))
+    } catch (error: any) {
+      console.error('handleSetActive: ', error)
+      message.error(error)
+    }
+  } else {
+    message.success(t('subscribes.setActiveSuccess'))
+  }
+}
 
 const generateMenus = (subscription: App.Subscription) => {
   return menuList.map((v) => ({
@@ -220,6 +242,13 @@ const onSortUpdate = debounce(subscribeStore.saveSubscribes, 1000)
           class="mx-4 cursor-pointer shrink-0"
           @click="BrowserOpenURL(s.website)"
         />
+        <Tag
+          v-if="appSettingsStore.app.kernel.activeSubscription === s.id"
+          color="primary"
+          size="small"
+        >
+          {{ t('subscribes.active') }}
+        </Tag>
       </template>
 
       <template v-if="appSettingsStore.app.subscribesView === View.Grid" #extra>
@@ -227,6 +256,9 @@ const onSortUpdate = debounce(subscribeStore.saveSubscribes, 1000)
           <Button type="link" size="small" icon="more" />
           <template #overlay>
             <div class="flex flex-col gap-4 min-w-64 p-4">
+              <Button type="text" @click="handleSetActive(s.id)">
+                {{ t('subscribes.setActive') }}
+              </Button>
               <Button
                 :disabled="s.disabled"
                 :loading="s.updating"
@@ -250,6 +282,9 @@ const onSortUpdate = debounce(subscribeStore.saveSubscribes, 1000)
       </template>
 
       <template v-else #extra>
+        <Button type="text" size="small" @click="handleSetActive(s.id)">
+          {{ t('subscribes.setActive') }}
+        </Button>
         <Button
           :disabled="s.disabled"
           :loading="s.updating"

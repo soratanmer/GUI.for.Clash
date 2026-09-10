@@ -68,6 +68,8 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
 
   let runtimeConfig: Recordable | undefined
   let cachedTunConfig: Recordable | undefined
+  // runtimeConfig 的来源订阅 id，切换订阅后据此使配置缓存失效
+  let runtimeConfigSubId = ''
 
   const refreshConfig = async () => {
     const _config = await getConfigs()
@@ -283,10 +285,15 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
 
     starting.value = true
     try {
+      // 切换订阅后：旧配置缓存失效，强制从新订阅读取
+      if (runtimeConfigSubId !== activeSubscription) {
+        runtimeConfig = undefined
+      }
       // 如果 runtimeConfig 已存在（重启场景，如用户手动切换 TUN），保留已有配置
       if (!runtimeConfig) {
         const configYaml = await ReadFile(sub.path)
         runtimeConfig = parse(configYaml) as Recordable
+        runtimeConfigSubId = activeSubscription
 
         // 缓存 TUN 配置并移除，避免非管理员权限下启动失败
         if (runtimeConfig!.tun) {
@@ -324,6 +331,7 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
       await cleanupTask?.()
       if (!keepRuntime) {
         runtimeConfig = undefined
+        runtimeConfigSubId = ''
       }
       await startCore()
     } finally {
